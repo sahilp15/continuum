@@ -1,0 +1,27 @@
+{
+  "name": "@continuum/preflight",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Deterministic preflight checks that validate generated content against a Space's approved rules before it ships.",
+  "type": "module",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "default": "./dist/index.js"
+    }
+  },
+  "scripts": {
+    "build": "tsc -p tsconfig.json",
+    "typecheck": "tsc -p tsconfig.json --noEmit",
+    "test": "vitest run"
+  },
+  "dependencies": {
+    "@continuum/contracts": "workspace:*",
+    "@continuum/memory": "workspace:*"
+  },
+  "devDependencies": {
+    "@continuum/testing": "workspace:*",
+    "typescript": "catalog:",
+    "vitest": "catalog:"
+  }
+}

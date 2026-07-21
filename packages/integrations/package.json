@@ -1,0 +1,25 @@
+{
+  "name": "@continuum/integrations",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Provider abstractions (LLM, embeddings, storage, billing, email, analytics, credential vault, search) with deterministic mocks. The full local app runs on mocks without paid API keys.",
+  "type": "module",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "default": "./dist/index.js"
+    }
+  },
+  "scripts": {
+    "build": "tsc -p tsconfig.json",
+    "typecheck": "tsc -p tsconfig.json --noEmit",
+    "test": "vitest run"
+  },
+  "dependencies": {
+    "@continuum/contracts": "workspace:*"
+  },
+  "devDependencies": {
+    "typescript": "catalog:",
+    "vitest": "catalog:"
+  }
+}

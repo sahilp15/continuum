@@ -1,0 +1,82 @@
+/*
+ * Continuum design tokens (spec §29).
+ * Brand personality: calm, intelligent, trustworthy, precise, quietly futuristic.
+ * Foundation: warm ink neutrals. Accent: a single deep teal ("the thread").
+ * No purple AI gradients, no neon, no glassmorphism.
+ */
+:root {
+  /* Neutral foundation — light */
+  --cn-bg: #faf9f7;
+  --cn-surface: #ffffff;
+  --cn-surface-raised: #ffffff;
+  --cn-text: #191d20;
+  --cn-text-secondary: #5c6470;
+  --cn-text-tertiary: #8a919c;
+  --cn-border: #e5e2dc;
+  --cn-border-strong: #cfcbc3;
+
+  /* The thread — Continuum's single accent */
+  --cn-accent: #0f766e;
+  --cn-accent-hover: #115e59;
+  --cn-accent-muted: #ccfbf1;
+  --cn-accent-ink: #042f2e;
+
+  /* Status */
+  --cn-success: #15803d;
+  --cn-warning: #b45309;
+  --cn-error: #b91c1c;
+  --cn-info: #1d4ed8;
+
+  /* Focus */
+  --cn-focus-ring: 0 0 0 2px var(--cn-bg), 0 0 0 4px var(--cn-accent);
+
+  /* Elevation */
+  --cn-shadow-sm: 0 1px 2px rgb(25 29 32 / 0.06);
+  --cn-shadow-md: 0 2px 8px rgb(25 29 32 / 0.08), 0 1px 2px rgb(25 29 32 / 0.06);
+  --cn-shadow-lg: 0 8px 32px rgb(25 29 32 / 0.12);
+
+  /* Geometry */
+  --cn-radius-sm: 6px;
+  --cn-radius-md: 10px;
+  --cn-radius-lg: 16px;
+
+  /* Motion */
+  --cn-ease: cubic-bezier(0.22, 1, 0.36, 1);
+  --cn-duration-fast: 140ms;
+  --cn-duration-base: 240ms;
+  --cn-duration-slow: 480ms;
+}
+
+[data-theme="dark"],
+.dark {
+  --cn-bg: #101314;
+  --cn-surface: #16191b;
+  --cn-surface-raised: #1d2124;
+  --cn-text: #f2f1ee;
+  --cn-text-secondary: #a4abb3;
+  --cn-text-tertiary: #6e757d;
+  --cn-border: #272c30;
+  --cn-border-strong: #3a4046;
+
+  --cn-accent: #2dd4bf;
+  --cn-accent-hover: #5eead4;
+  --cn-accent-muted: #134e4a;
+  --cn-accent-ink: #ccfbf1;
+
+  --cn-success: #4ade80;
+  --cn-warning: #fbbf24;
+  --cn-error: #f87171;
+  --cn-info: #60a5fa;
+
+  --cn-shadow-sm: 0 1px 2px rgb(0 0 0 / 0.4);
+  --cn-shadow-md: 0 2px 8px rgb(0 0 0 / 0.5);
+  --cn-shadow-lg: 0 8px 32px rgb(0 0 0 / 0.6);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  :root {
+    --cn-duration-fast: 0ms;
+    --cn-duration-base: 0ms;
+    --cn-duration-slow: 0ms;
+  }
+}

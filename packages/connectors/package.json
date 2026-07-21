@@ -1,0 +1,28 @@
+{
+  "name": "@continuum/connectors",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Connector adapters. Real provider adapters are feature-flagged until their OAuth flows are verified; deterministic mock connectors power local development.",
+  "type": "module",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "default": "./dist/index.js"
+    }
+  },
+  "scripts": {
+    "build": "tsc -p tsconfig.json",
+    "typecheck": "tsc -p tsconfig.json --noEmit",
+    "test": "vitest run"
+  },
+  "dependencies": {
+    "@continuum/connectors-core": "workspace:*",
+    "@continuum/contracts": "workspace:*",
+    "@continuum/integrations": "workspace:*",
+    "@continuum/observability": "workspace:*"
+  },
+  "devDependencies": {
+    "typescript": "catalog:",
+    "vitest": "catalog:"
+  }
+}

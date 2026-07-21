@@ -1,0 +1,30 @@
+{
+  "name": "@continuum/evals",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Retrieval-quality evaluation framework plus the deterministic demo harness (fixtures + services wired together) used by evals, the MCP server, and demo mode.",
+  "type": "module",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "default": "./dist/index.js"
+    }
+  },
+  "scripts": {
+    "build": "tsc -p tsconfig.json",
+    "typecheck": "tsc -p tsconfig.json --noEmit",
+    "test": "vitest run"
+  },
+  "dependencies": {
+    "@continuum/auth": "workspace:*",
+    "@continuum/context": "workspace:*",
+    "@continuum/contracts": "workspace:*",
+    "@continuum/memory": "workspace:*",
+    "@continuum/preflight": "workspace:*",
+    "@continuum/testing": "workspace:*"
+  },
+  "devDependencies": {
+    "typescript": "catalog:",
+    "vitest": "catalog:"
+  }
+}
