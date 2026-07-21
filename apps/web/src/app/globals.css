@@ -1,0 +1,187 @@
+@import "tailwindcss";
+@import "@continuum/ui/tokens.css";
+
+/*
+ * Continuum web styles.
+ * Editorial-minimal on warm paper; one teal accent ("the thread").
+ * Type: editorial serif display + humanist sans body. Webfonts (Fraunces /
+ * Instrument Sans) are a Phase 8 decision; these stacks are CI-safe today.
+ */
+
+@theme {
+  --font-display: "Iowan Old Style", "Palatino Linotype", Palatino, Georgia, serif;
+  --font-body: Seravek, "Gill Sans Nova", Ubuntu, Calibri, "DejaVu Sans", sans-serif;
+  --font-data: ui-monospace, "Cascadia Code", "JetBrains Mono", Menlo, monospace;
+
+  --color-bg: var(--cn-bg);
+  --color-surface: var(--cn-surface);
+  --color-raised: var(--cn-surface-raised);
+  --color-ink: var(--cn-text);
+  --color-ink-secondary: var(--cn-text-secondary);
+  --color-ink-tertiary: var(--cn-text-tertiary);
+  --color-line: var(--cn-border);
+  --color-line-strong: var(--cn-border-strong);
+  --color-accent: var(--cn-accent);
+  --color-accent-hover: var(--cn-accent-hover);
+  --color-accent-muted: var(--cn-accent-muted);
+  --color-accent-ink: var(--cn-accent-ink);
+  --color-ok: var(--cn-success);
+  --color-warn: var(--cn-warning);
+  --color-danger: var(--cn-error);
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  background: var(--cn-bg);
+  color: var(--cn-text);
+  font-family: var(--font-body);
+  font-feature-settings: "kern";
+  -webkit-font-smoothing: antialiased;
+}
+
+.font-display {
+  font-family: var(--font-display);
+  letter-spacing: -0.015em;
+}
+
+.font-data {
+  font-family: var(--font-data);
+  font-size: 0.8125rem;
+}
+
+/* Paper grain: barely-there texture so surfaces feel physical, not flat. */
+.grain {
+  position: relative;
+}
+.grain::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  opacity: 0.35;
+  background-image: radial-gradient(rgb(25 29 32 / 0.05) 1px, transparent 1px);
+  background-size: 22px 22px;
+  mask-image: linear-gradient(to bottom, black, transparent 85%);
+}
+
+/* Focus visibility everywhere. */
+:focus-visible {
+  outline: none;
+  box-shadow: var(--cn-focus-ring);
+  border-radius: var(--cn-radius-sm);
+}
+
+/* Reveal-on-scroll, CSS-only. Falls back to fully visible when unsupported,
+   and is disabled entirely under prefers-reduced-motion. */
+.reveal {
+  opacity: 1;
+  transform: none;
+}
+@supports (animation-timeline: view()) {
+  @media (prefers-reduced-motion: no-preference) {
+    .reveal {
+      animation: reveal-up linear both;
+      animation-timeline: view();
+      animation-range: entry 0% entry 45%;
+    }
+  }
+}
+@keyframes reveal-up {
+  from {
+    opacity: 0;
+    transform: translateY(24px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+/* The thread: the continuous line that carries the landing narrative. */
+.thread-path {
+  stroke: var(--cn-accent);
+  stroke-width: 2;
+  fill: none;
+  opacity: 0.55;
+}
+@supports (animation-timeline: scroll()) {
+  @media (prefers-reduced-motion: no-preference) {
+    .thread-path {
+      stroke-dasharray: 1;
+      stroke-dashoffset: 1;
+      animation: thread-draw linear both;
+      animation-timeline: scroll(root);
+      animation-range: 0% 90%;
+    }
+  }
+}
+@keyframes thread-draw {
+  from {
+    stroke-dashoffset: 1;
+  }
+  to {
+    stroke-dashoffset: 0;
+  }
+}
+
+/* Buttons */
+.btn-primary {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  background: var(--cn-accent);
+  color: #ffffff;
+  font-weight: 600;
+  padding: 0.7rem 1.4rem;
+  border-radius: var(--cn-radius-md);
+  transition: background var(--cn-duration-fast) var(--cn-ease);
+}
+.btn-primary:hover {
+  background: var(--cn-accent-hover);
+}
+.btn-secondary {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  color: var(--cn-text);
+  font-weight: 600;
+  padding: 0.7rem 1.4rem;
+  border-radius: var(--cn-radius-md);
+  border: 1px solid var(--cn-border-strong);
+  transition:
+    border-color var(--cn-duration-fast) var(--cn-ease),
+    background var(--cn-duration-fast) var(--cn-ease);
+}
+.btn-secondary:hover {
+  border-color: var(--cn-accent);
+  background: var(--cn-surface);
+}
+
+/* Cards & panels */
+.panel {
+  background: var(--cn-surface);
+  border: 1px solid var(--cn-border);
+  border-radius: var(--cn-radius-lg);
+  box-shadow: var(--cn-shadow-sm);
+}
+
+.chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.375rem;
+  font-size: 0.75rem;
+  font-weight: 600;
+  padding: 0.2rem 0.6rem;
+  border-radius: 999px;
+  border: 1px solid var(--cn-border);
+  color: var(--cn-text-secondary);
+  background: var(--cn-surface);
+}
+.chip-accent {
+  border-color: var(--cn-accent);
+  color: var(--cn-accent);
+  background: color-mix(in srgb, var(--cn-accent-muted) 40%, transparent);
+}

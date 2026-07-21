@@ -1,0 +1,31 @@
+{
+  "name": "@continuum/app-mcp",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Continuum MCP server: exposes continuum.* tools over the Model Context Protocol so MCP-compatible assistants retrieve authorized context.",
+  "type": "module",
+  "bin": {
+    "continuum-mcp": "./dist/main.js"
+  },
+  "scripts": {
+    "build": "tsc -p tsconfig.json",
+    "typecheck": "tsc -p tsconfig.json --noEmit",
+    "test": "vitest run",
+    "dev": "node --experimental-strip-types src/main.ts"
+  },
+  "dependencies": {
+    "@continuum/auth": "workspace:*",
+    "@continuum/contracts": "workspace:*",
+    "@continuum/evals": "workspace:*",
+    "@continuum/memory": "workspace:*",
+    "@continuum/observability": "workspace:*",
+    "@continuum/testing": "workspace:*",
+    "@modelcontextprotocol/sdk": "catalog:",
+    "zod": "catalog:"
+  },
+  "devDependencies": {
+    "@types/node": "catalog:",
+    "typescript": "catalog:",
+    "vitest": "catalog:"
+  }
+}

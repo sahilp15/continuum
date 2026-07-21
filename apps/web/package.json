@@ -1,0 +1,34 @@
+{
+  "name": "@continuum/app-web",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Continuum web application: marketing site and product app (demo mode runs on the deterministic in-memory environment).",
+  "scripts": {
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start",
+    "typecheck": "tsc --noEmit",
+    "test": "echo 'web: e2e tests arrive with Playwright in Phase 8'"
+  },
+  "dependencies": {
+    "@continuum/auth": "workspace:*",
+    "@continuum/context": "workspace:*",
+    "@continuum/contracts": "workspace:*",
+    "@continuum/evals": "workspace:*",
+    "@continuum/memory": "workspace:*",
+    "@continuum/preflight": "workspace:*",
+    "@continuum/testing": "workspace:*",
+    "@continuum/ui": "workspace:*",
+    "next": "^15.5.4",
+    "react": "^19.1.0",
+    "react-dom": "^19.1.0"
+  },
+  "devDependencies": {
+    "@tailwindcss/postcss": "^4.1.0",
+    "@types/node": "catalog:",
+    "@types/react": "^19.1.0",
+    "@types/react-dom": "^19.1.0",
+    "tailwindcss": "^4.1.0",
+    "typescript": "catalog:"
+  }
+}

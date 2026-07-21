@@ -1,0 +1,19 @@
+{
+  "name": "@continuum/app-extension",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Continuum browser extension (Phase 6). Site adapters and core logic are typed and tested now; WXT + React packaging lands when Phase 6 starts. Not packaged or shippable yet.",
+  "type": "module",
+  "scripts": {
+    "build": "tsc -p tsconfig.json",
+    "typecheck": "tsc -p tsconfig.json --noEmit",
+    "test": "vitest run"
+  },
+  "dependencies": {
+    "@continuum/contracts": "workspace:*"
+  },
+  "devDependencies": {
+    "typescript": "catalog:",
+    "vitest": "catalog:"
+  }
+}
