@@ -1,3 +1,5 @@
+import { mkdirSync } from "node:fs";
+import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 import { PGlite } from "@electric-sql/pglite";
 import { vector } from "@electric-sql/pglite/vector";
@@ -43,8 +45,40 @@ export interface CreateDatabaseOptions {
   dataDir?: string;
 }
 
-/** Absolute path to the generated migrations folder (stable across src/dist). */
-const migrationsFolder = fileURLToPath(new URL("../drizzle", import.meta.url));
+/**
+ * Absolute path to the generated migrations folder (stable across src/dist).
+ * Built from dirname+join rather than `new URL("...", import.meta.url)` so
+ * bundlers don't statically mistake it for an asset import.
+ */
+const migrationsFolder = join(dirname(fileURLToPath(import.meta.url)), "..", "drizzle");
+
+/**
+ * PGlite is a single in-process connection and can abort under concurrent
+ * queries (Next serves requests concurrently). Serialize every operation so
+ * dev + e2e are reliable. Production uses node-postgres (a real pool) and is
+ * unaffected — this wrapper is applied to the PGlite client only.
+ */
+function serializePGlite(client: PGlite): PGlite {
+  let tail: Promise<unknown> = Promise.resolve();
+  const runExclusive = <T>(op: () => Promise<T>): Promise<T> => {
+    const result = tail.then(op);
+    tail = result.then(
+      () => undefined,
+      () => undefined,
+    );
+    return result;
+  };
+  const origQuery = client.query.bind(client);
+  const origExec = client.exec.bind(client);
+  const origTransaction = client.transaction.bind(client);
+  client.query = ((...args: Parameters<PGlite["query"]>) =>
+    runExclusive(() => origQuery(...args))) as PGlite["query"];
+  client.exec = ((...args: Parameters<PGlite["exec"]>) =>
+    runExclusive(() => origExec(...args))) as PGlite["exec"];
+  client.transaction = ((...args: Parameters<PGlite["transaction"]>) =>
+    runExclusive(() => origTransaction(...args))) as PGlite["transaction"];
+  return client;
+}
 
 function resolveDriver(opts: CreateDatabaseOptions): DbDriver {
   if (opts.driver) return opts.driver;
@@ -85,7 +119,12 @@ export async function createDatabase(opts: CreateDatabaseOptions = {}): Promise<
   }
 
   const dataDir = opts.dataDir ?? process.env.CONTINUUM_PGLITE_DIR ?? "memory://";
-  const client = await PGlite.create(dataDir, { extensions: { vector } });
+  // For a filesystem-backed PGlite, ensure the directory tree exists — PGlite's
+  // own mkdir is non-recursive, so a missing parent would fail.
+  if (!dataDir.startsWith("memory://") && !dataDir.includes("://")) {
+    mkdirSync(dataDir, { recursive: true });
+  }
+  const client = serializePGlite(await PGlite.create(dataDir, { extensions: { vector } }));
   const db = drizzlePglite(client, { schema });
   return {
     db,

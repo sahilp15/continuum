@@ -97,3 +97,27 @@ test-login require no external credentials.
   a production env.
 - **Playwright**: sign-in (test-login) → redirect → refresh persists session → logout → protected
   route blocked; login-with-Google grants no Workspace connector access.
+
+## As-built (Phase 2 — verified)
+
+- Files: `apps/web/src/lib/{auth-factory,auth,auth-client,db,env,actor}.ts`,
+  `apps/web/src/middleware.ts`, `apps/web/src/app/(auth)/*`,
+  `apps/web/src/app/api/auth/[...all]/route.ts`, `apps/web/src/app/api/test-login/route.ts`,
+  `packages/auth/src/session-actor.ts`, `packages/db/src/schema/identity.ts` (+ regenerated baseline
+  migration `packages/db/drizzle/0000_*.sql`).
+- **Integration tests** (`apps/web/src/lib/auth-factory.test.ts`, against PGlite): sign-up creates
+  exactly one user (`onboardingStatus` defaults `not_started`); duplicate email rejected; sign-in
+  persists a session and sign-out revokes it; invalid credentials rejected. Plus
+  `packages/auth/src/session-actor.test.ts`.
+- **Playwright** (`apps/web/e2e/auth.spec.ts`): unauthenticated → redirect to sign-in; sign-up →
+  session persists across reload → logout → protected route blocked; authenticated user redirected
+  away from sign-in.
+- **Next.js/PGlite specifics** (so this keeps working): `@electric-sql/pglite` is a direct dependency
+  of `apps/web` and listed in `serverExternalPackages` so Next resolves it natively (its WASM +
+  pgvector extension must not be webpack-bundled); `@continuum/db` is in `transpilePackages`. PGlite
+  is a single connection, so `packages/db` serializes all PGlite operations through a mutex, and the
+  web app defaults to an **in-memory** PGlite (file-backed can lock-contend and abort the WASM under
+  concurrent requests) — set `CONTINUUM_PGLITE_DIR` to opt into persistence. In dev the auth `baseURL`
+  is inferred from the request (ports vary); production pins it via `BETTER_AUTH_URL`. Env validation
+  (`env.ts`) skips runtime-secret requirements during `next build` (`NEXT_PHASE`), enforcing them only
+  when serving.

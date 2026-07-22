@@ -2,6 +2,9 @@
 node_modules/
 .pnpm-store/
 
+# Local PGlite database (dev)
+.continuum/
+
 # Builds
 dist/
 .next/
@@ -21,6 +24,11 @@ out/
 # Logs and coverage
 *.log
 coverage/
+
+# Playwright
+test-results/
+playwright-report/
+.playwright/
 
 # OS / editor
 .DS_Store
