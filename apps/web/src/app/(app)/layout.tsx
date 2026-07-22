@@ -20,7 +20,10 @@ const NAV = [
 export default async function AppLayout({ children }: { children: React.ReactNode }) {
   // Server-side gate: unauthenticated → sign-in; not-yet-onboarded → onboarding.
   const actor = await getCurrentActor();
-  if (!actor) redirect("/sign-in?returnTo=/home");
+  // Route through the reset endpoint so a stale-but-present session cookie is
+  // cleared before we land on sign-in — otherwise the edge middleware still sees
+  // the cookie and bounces back here, looping. See middleware.ts / actor.ts.
+  if (!actor) redirect("/api/session/reset?returnTo=/home");
   const onboarding = getOnboarding();
   if ((await onboarding.getStatus(actor.userId)) !== "complete") {
     redirect("/onboarding");

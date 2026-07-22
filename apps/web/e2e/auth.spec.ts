@@ -46,7 +46,35 @@ test("authenticated user is redirected away from the sign-in page", async ({ pag
   await page.getByRole("button", { name: "Create account" }).click();
   await expect(page).toHaveURL(/\/onboarding/);
 
-  // Signed-in users don't sit on the sign-in page (middleware bounces them).
+  // Signed-in users don't sit on the sign-in page. This bounce is now gated on
+  // the real session in (auth)/layout.tsx, not a cookie-presence check.
   await page.goto("/sign-in");
   await expect(page).not.toHaveURL(/\/sign-in/);
+});
+
+test("a stale session cookie does not cause a /home redirect loop", async ({ page }) => {
+  const email = `e2e-stale-${Date.now()}@continuum.test`;
+  await page.goto("/sign-up");
+  await page.getByLabel("Name").fill("Stale User");
+  await page.getByLabel("Email").fill(email);
+  await page.getByLabel("Password").fill("password123");
+  await page.getByRole("button", { name: "Create account" }).click();
+  await page.waitForURL(/\/(onboarding|home)/);
+
+  // Delete the session ROW but keep the browser cookie — the exact state a dev
+  // restart leaves behind (signed cookie, no session). Before the fix this made
+  // /home and /sign-in redirect back and forth forever.
+  const res = await page.request.post("/api/test-expire-session");
+  expect(res.ok()).toBeTruthy();
+
+  // Opening /home must settle on the sign-in form after a SINGLE, self-healing
+  // redirect through /api/session/reset — not spin in a loop.
+  await page.goto("/home");
+  await expect(page).toHaveURL(/\/sign-in\?returnTo=/);
+  await expect(page.getByLabel("Email")).toBeVisible();
+
+  // The stale cookie was cleared, so a subsequent protected-route hit is a clean
+  // single redirect too (no session cookie left to bounce on).
+  await page.goto("/settings");
+  await expect(page).toHaveURL(/\/sign-in\?returnTo=/);
 });
