@@ -1,7 +1,15 @@
 import Link from "next/link";
+import { redirect } from "next/navigation";
+import { getCurrentActor } from "@/lib/actor";
 
 /** Calm, branded shell for authentication pages. */
-export default function AuthLayout({ children }: { children: React.ReactNode }) {
+export default async function AuthLayout({ children }: { children: React.ReactNode }) {
+  // Already signed in? Skip the form. This is the ONLY "authenticated → /home"
+  // redirect for auth pages, and it is gated on the REAL session (a DB lookup),
+  // not cookie presence — so a stale cookie can never bounce us here and loop
+  // against the server-side gate on /home. See middleware.ts for the rationale.
+  if (await getCurrentActor()) redirect("/home");
+
   return (
     <div className="mx-auto flex min-h-screen max-w-md flex-col justify-center px-6 py-12">
       <Link href="/" className="mb-8 flex items-center gap-2">

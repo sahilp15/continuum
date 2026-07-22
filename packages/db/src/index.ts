@@ -37,6 +37,7 @@ export {
   listUserProjects,
   recentContextActivity,
   recentAuditActivity,
+  deleteSessionByToken,
   type ContextActivity,
   type ActivityEvent,
 } from "./queries.js";
