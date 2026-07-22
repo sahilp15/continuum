@@ -6,6 +6,9 @@ settings:
 
 catalogs:
   default:
+    '@electric-sql/pglite':
+      specifier: ^0.2.17
+      version: 0.2.17
     '@modelcontextprotocol/sdk':
       specifier: ^1.17.0
       version: 1.29.0
@@ -298,12 +301,18 @@ importers:
       '@continuum/testing':
         specifier: workspace:*
         version: link:../testing
+      '@electric-sql/pglite':
+        specifier: 'catalog:'
+        version: 0.2.17
       drizzle-orm:
         specifier: 'catalog:'
-        version: 0.44.7(@types/pg@8.20.0)(pg@8.22.0)
+        version: 0.44.7(@electric-sql/pglite@0.2.17)(@types/pg@8.20.0)(pg@8.22.0)
       pg:
         specifier: 'catalog:'
         version: 8.22.0
+      zod:
+        specifier: 'catalog:'
+        version: 3.25.76
     devDependencies:
       '@types/node':
         specifier: 'catalog:'
@@ -439,6 +448,9 @@ packages:
 
   '@drizzle-team/brocli@0.10.2':
     resolution: {integrity: sha512-z33Il7l5dKjUgGULTqBsQBQwckHh5AbIuxhdsIxDDiZAzBOrZO6q9ogcWC65kU382AfynTfgNumVcNIjuIua6w==}
+
+  '@electric-sql/pglite@0.2.17':
+    resolution: {integrity: sha512-qEpKRT2oUaWDH6tjRxLHjdzMqRUGYDnGZlKrnL4dJ77JVMcP2Hpo3NYnOSPKdZdeec57B6QPprCUFg0picx5Pw==}
 
   '@emnapi/runtime@1.11.2':
     resolution: {integrity: sha512-kyOl3X0DuTiT1h2ft8r2fYO8JYtU9a9Xis/zBSiGArNaagCOWx90N1k2wxp18czFDH+OgcWGb5ZP/XMt3dcyPA==}
@@ -2774,6 +2786,8 @@ snapshots:
 
   '@drizzle-team/brocli@0.10.2': {}
 
+  '@electric-sql/pglite@0.2.17': {}
+
   '@emnapi/runtime@1.11.2':
     dependencies:
       tslib: 2.8.1
@@ -3720,8 +3734,9 @@ snapshots:
       esbuild: 0.25.12
       tsx: 4.23.1
 
-  drizzle-orm@0.44.7(@types/pg@8.20.0)(pg@8.22.0):
+  drizzle-orm@0.44.7(@electric-sql/pglite@0.2.17)(@types/pg@8.20.0)(pg@8.22.0):
     optionalDependencies:
+      '@electric-sql/pglite': 0.2.17
       '@types/pg': 8.20.0
       pg: 8.22.0
 
