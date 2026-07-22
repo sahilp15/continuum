@@ -1,28 +1,43 @@
 import Link from "next/link";
 import { redirect } from "next/navigation";
-import { getSession } from "@/lib/actor";
+import { getCurrentActor, getSession } from "@/lib/actor";
+import { getActiveSpace } from "@/lib/active-space";
+import { getEnv, getOnboarding } from "@/lib/services";
+import { SpaceSwitcher } from "./space-switcher";
 import { UserMenu } from "./user-menu";
 
 const NAV = [
   { href: "/home", label: "Home" },
   { href: "/spaces", label: "Spaces" },
+  { href: "/projects", label: "Projects" },
   { href: "/inbox", label: "Memory Inbox" },
-  { href: "/check", label: "Check" },
-  { href: "/receipts", label: "Receipts" },
+  { href: "/check", label: "Preflight" },
+  { href: "/receipts", label: "Context Receipts" },
+  { href: "/connectors", label: "Connectors" },
+  { href: "/settings", label: "Settings" },
 ];
 
 export default async function AppLayout({ children }: { children: React.ReactNode }) {
-  // Server-side enforcement (middleware handles the optimistic redirect; this is
-  // the real gate). Unauthenticated users can never render the app shell.
-  const session = await getSession();
-  if (!session?.user) {
-    redirect("/sign-in?returnTo=/home");
+  // Server-side gate: unauthenticated → sign-in; not-yet-onboarded → onboarding.
+  const actor = await getCurrentActor();
+  if (!actor) redirect("/sign-in?returnTo=/home");
+  const onboarding = getOnboarding();
+  if ((await onboarding.getStatus(actor.userId)) !== "complete") {
+    redirect("/onboarding");
   }
+
+  const env = getEnv();
+  const spaces = await env.tenancy.listUserSpaces(actor.userId);
+  const activeSpace = await getActiveSpace(spaces);
+  const profile = await env.tenancy.getProfile(actor.userId);
+  const session = await getSession();
+  const displayName = profile?.displayName || session?.user?.name || "Your account";
+  const email = session?.user?.email ?? "";
 
   return (
     <div className="mx-auto flex min-h-screen max-w-7xl">
       <aside className="hidden w-56 shrink-0 flex-col border-r border-(--cn-border) px-4 py-6 sm:flex">
-        <Link href="/" className="flex items-center gap-2 px-2">
+        <Link href="/home" className="flex items-center gap-2 px-2">
           <svg width="22" height="22" viewBox="0 0 26 26" aria-hidden>
             <path
               d="M13 4 C 20 4, 22 10, 18 13 C 22 16, 20 22, 13 22 C 6 22, 4 16, 8 13 C 4 10, 6 4, 13 4 Z"
@@ -44,29 +59,35 @@ export default async function AppLayout({ children }: { children: React.ReactNod
             </Link>
           ))}
         </nav>
-        <div className="mt-auto flex flex-col gap-3 text-xs">
-          <span className="chip mx-3 w-fit" title="This view still shows demo fixtures">
-            Demo data
-          </span>
-          <UserMenu name={session.user.name} email={session.user.email} />
+        <div className="mt-auto">
+          <UserMenu name={displayName} email={email} />
         </div>
       </aside>
-      <main className="min-w-0 flex-1 px-6 py-8">
-        <nav
-          className="mb-6 flex gap-4 overflow-x-auto text-sm font-medium sm:hidden"
-          aria-label="Primary (mobile)"
-        >
-          {NAV.map((item) => (
-            <Link
-              key={item.href}
-              href={item.href}
-              className="whitespace-nowrap text-(--cn-text-secondary)"
-            >
-              {item.label}
-            </Link>
-          ))}
-        </nav>
-        {children}
+      <main className="min-w-0 flex-1">
+        <header className="flex items-center justify-between gap-4 border-b border-(--cn-border) px-6 py-3">
+          <div className="flex items-center gap-3">
+            {activeSpace ? (
+              <SpaceSwitcher spaces={spaces} activeId={activeSpace.id} />
+            ) : (
+              <span className="text-sm text-(--cn-text-tertiary)">No Space yet</span>
+            )}
+          </div>
+          <nav
+            className="flex gap-3 overflow-x-auto text-xs font-medium sm:hidden"
+            aria-label="Primary (mobile)"
+          >
+            {NAV.slice(0, 5).map((item) => (
+              <Link
+                key={item.href}
+                href={item.href}
+                className="whitespace-nowrap text-(--cn-text-secondary)"
+              >
+                {item.label}
+              </Link>
+            ))}
+          </nav>
+        </header>
+        <div className="px-6 py-8">{children}</div>
       </main>
     </div>
   );

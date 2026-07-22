@@ -1,6 +1,22 @@
+import { newId } from "@continuum/contracts";
 import { schema, type ContinuumDatabase } from "@continuum/db";
 import { betterAuth, type BetterAuthOptions } from "better-auth";
 import { drizzleAdapter } from "better-auth/adapters/drizzle";
+
+/**
+ * Continuum uses prefixed, self-describing IDs (`usr_…`). Continuum contracts
+ * require the `usr_` prefix on user IDs (Actor.userId flows into memory
+ * `createdBy`, personal profiles, etc.), so Better Auth must mint them too.
+ */
+const ID_PREFIX: Record<string, string> = {
+  user: "usr",
+  session: "ses",
+  account: "acc",
+  verification: "ver",
+};
+function generateModelId({ model }: { model: string }): string {
+  return newId((ID_PREFIX[model] ?? model.replace(/[^a-z0-9]/gi, "").slice(0, 8)) || "id");
+}
 
 /**
  * Pure Better Auth factory — no server-only / no DB singleton imports, so it is
@@ -34,6 +50,10 @@ export function createAuth(cfg: CreateAuthConfig) {
         verification: schema.verification,
       },
     }),
+    advanced: {
+      // Mint prefixed, self-describing IDs so Actor.userId is a valid `usr_` id.
+      database: { generateId: generateModelId },
+    },
     emailAndPassword: {
       enabled: true,
       requireEmailVerification: false,

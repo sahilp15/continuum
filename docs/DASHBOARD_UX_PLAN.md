@@ -56,3 +56,19 @@ A request-scoped services factory resolves the session → Actor and builds doma
 Drizzle stores. Server components read via those services (Space-scoped, authorization-enforced);
 mutations are server actions with `revalidatePath`/optimistic updates where safe. Demo Mode swaps in
 the in-memory environment behind a persistent "Demo Mode" badge and never mixes with real records.
+
+## As-built (Phase 4 — verified)
+
+The DB-backed app shell and dashboard are implemented in `apps/web/src/app/(app)/*`:
+`layout.tsx` (sidebar with the full nav + top bar with an always-visible **active Space switcher**
+and user menu), `home/page.tsx` (dashboard: greeting + active Space, Attention-required, Quick
+actions, Your Spaces, Recent context, Recent changes — all from the real DB with truthful empty
+states). The active Space is a cookie read server-side (`lib/active-space.ts`); switching uses a
+server action (`space-actions.ts`) + client `space-switcher.tsx`. Dashboard data comes from
+`packages/db/src/queries.ts` (`listUserProjects`, `recentContextActivity`, `recentAuditActivity`)
+plus per-Space authorized reads. New pages: `projects`, `connectors` (honest "Coming soon"/"Setup
+required" — never a fake "Connected"), `settings` (profile editor). `spaces`, `spaces/[id]`, `inbox`
+(+ paste import), `check`, `receipts` were rewired from the in-memory demo env to the real
+`createDbEnvironment`. Verified by `apps/web/e2e/dashboard.spec.ts` (loads real data, creates + switches
+a second Space, imports a source, approves a suggestion). Command palette + Project switcher are
+deferred to the Phase 8 UI-refinement pass.

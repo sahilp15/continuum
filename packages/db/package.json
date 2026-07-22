@@ -23,7 +23,11 @@
     "db:seed": "node --experimental-strip-types src/seed.ts"
   },
   "dependencies": {
+    "@continuum/auth": "workspace:*",
+    "@continuum/context": "workspace:*",
     "@continuum/contracts": "workspace:*",
+    "@continuum/memory": "workspace:*",
+    "@continuum/preflight": "workspace:*",
     "@continuum/testing": "workspace:*",
     "@electric-sql/pglite": "catalog:",
     "drizzle-orm": "catalog:",

@@ -1,5 +1,6 @@
 import type { PreflightResult } from "@continuum/contracts";
-import { getDemoActor, getDemoEnvironment } from "@/lib/demo";
+import { requireActor } from "@/lib/actor";
+import { getEnv } from "@/lib/services";
 
 export const metadata = { title: "Preflight Check" };
 export const dynamic = "force-dynamic";
@@ -17,20 +18,16 @@ export default async function CheckPage({
   searchParams: Promise<Record<string, string | string[] | undefined>>;
 }) {
   const params = await searchParams;
-  const env = getDemoEnvironment();
-  const actor = getDemoActor();
+  const env = getEnv();
+  const actor = await requireActor();
 
-  const visibleSpaces = [];
-  for (const space of env.data.spaces) {
-    const ok = await env.memoryService.listSpaceMemories(actor, space.id).catch(() => null);
-    if (ok) visibleSpaces.push(space);
-  }
+  const visibleSpaces = await env.tenancy.listUserSpaces(actor.userId);
 
   const spaceId = typeof params.spaceId === "string" ? params.spaceId : "";
   const content = typeof params.content === "string" ? params.content : "";
   let result: PreflightResult | null = null;
   if (spaceId && content && visibleSpaces.some((s) => s.id === spaceId)) {
-    result = await env.preflight(spaceId, content);
+    result = await env.preflight(actor, spaceId, content);
   }
 
   return (
