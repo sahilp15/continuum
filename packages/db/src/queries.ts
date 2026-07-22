@@ -15,14 +15,11 @@ const toIso = (d: Date | null): string | null => (d ? d.toISOString() : null);
 
 /**
  * Delete a session row by its token (Better Auth session revocation is a row
- * delete). Returns the number of rows removed. Used to revoke a session without
- * clearing the browser cookie — e.g. the e2e "stale cookie" regression that
- * proves /home no longer loops when a cookie outlives its session.
+ * delete). Used to revoke a session WITHOUT clearing the browser cookie — e.g.
+ * the e2e "stale cookie" regression that proves /home no longer loops when a
+ * cookie outlives its session.
  */
-export async function deleteSessionByToken(
-  db: ContinuumDatabase,
-  token: string,
-): Promise<void> {
+export async function deleteSessionByToken(db: ContinuumDatabase, token: string): Promise<void> {
   await db.delete(sessions).where(eq(sessions.token, token));
 }
 
