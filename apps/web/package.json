@@ -8,27 +8,35 @@
     "build": "next build",
     "start": "next start",
     "typecheck": "tsc --noEmit",
-    "test": "echo 'web: e2e tests arrive with Playwright in Phase 8'"
+    "test": "vitest run",
+    "test:e2e": "playwright test"
   },
   "dependencies": {
     "@continuum/auth": "workspace:*",
     "@continuum/context": "workspace:*",
     "@continuum/contracts": "workspace:*",
+    "@continuum/db": "workspace:*",
     "@continuum/evals": "workspace:*",
     "@continuum/memory": "workspace:*",
     "@continuum/preflight": "workspace:*",
     "@continuum/testing": "workspace:*",
     "@continuum/ui": "workspace:*",
+    "@electric-sql/pglite": "catalog:",
+    "better-auth": "^1.6.23",
     "next": "^15.5.4",
     "react": "^19.1.0",
-    "react-dom": "^19.1.0"
+    "react-dom": "^19.1.0",
+    "server-only": "^0.0.1",
+    "zod": "catalog:"
   },
   "devDependencies": {
+    "@playwright/test": "^1.61.1",
     "@tailwindcss/postcss": "^4.1.0",
     "@types/node": "catalog:",
     "@types/react": "^19.1.0",
     "@types/react-dom": "^19.1.0",
     "tailwindcss": "^4.1.0",
-    "typescript": "catalog:"
+    "typescript": "catalog:",
+    "vitest": "catalog:"
   }
 }

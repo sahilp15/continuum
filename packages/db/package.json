@@ -25,8 +25,10 @@
   "dependencies": {
     "@continuum/contracts": "workspace:*",
     "@continuum/testing": "workspace:*",
+    "@electric-sql/pglite": "catalog:",
     "drizzle-orm": "catalog:",
-    "pg": "catalog:"
+    "pg": "catalog:",
+    "zod": "catalog:"
   },
   "devDependencies": {
     "@types/node": "catalog:",

@@ -1,16 +1,19 @@
 /**
- * Seed the local database with the Northbank/FizzPop demo dataset.
- * Run with: pnpm db:seed  (requires docker compose up + migrations applied)
+ * Seed the database with the Northbank/FizzPop demo dataset.
+ *
+ * Driver is env-selected (see createDatabase): PGlite by default, or postgres
+ * when CONTINUUM_DB_DRIVER=postgres / NODE_ENV=production with DATABASE_URL.
+ * For a persistent local PGlite database set CONTINUUM_PGLITE_DIR to a path.
+ * Migrations are applied automatically before seeding.
  */
 import { createDemoDataset, demoOrganizations, demoUsers } from "@continuum/testing";
 import { createDatabase } from "./index.js";
 import * as schema from "./schema/index.js";
 
 async function main(): Promise<void> {
-  const url =
-    process.env.DATABASE_URL ??
-    "postgres://continuum:continuum_dev_password@localhost:5432/continuum";
-  const { db, pool } = createDatabase(url);
+  const handle = await createDatabase();
+  await handle.migrate();
+  const { db } = handle;
   const data = createDemoDataset();
 
   try {
@@ -152,7 +155,7 @@ async function main(): Promise<void> {
 
     console.log("Seeded Northbank and FizzPop demo data.");
   } finally {
-    await pool.end();
+    await handle.close();
   }
 }
 

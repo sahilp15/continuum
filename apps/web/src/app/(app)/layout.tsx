@@ -1,5 +1,7 @@
 import Link from "next/link";
-import { demoUsers } from "@continuum/testing";
+import { redirect } from "next/navigation";
+import { getSession } from "@/lib/actor";
+import { UserMenu } from "./user-menu";
 
 const NAV = [
   { href: "/home", label: "Home" },
@@ -9,7 +11,14 @@ const NAV = [
   { href: "/receipts", label: "Receipts" },
 ];
 
-export default function AppLayout({ children }: { children: React.ReactNode }) {
+export default async function AppLayout({ children }: { children: React.ReactNode }) {
+  // Server-side enforcement (middleware handles the optimistic redirect; this is
+  // the real gate). Unauthenticated users can never render the app shell.
+  const session = await getSession();
+  if (!session?.user) {
+    redirect("/sign-in?returnTo=/home");
+  }
+
   return (
     <div className="mx-auto flex min-h-screen max-w-7xl">
       <aside className="hidden w-56 shrink-0 flex-col border-r border-(--cn-border) px-4 py-6 sm:flex">
@@ -35,9 +44,11 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
             </Link>
           ))}
         </nav>
-        <div className="mt-auto px-3 text-xs text-(--cn-text-tertiary)">
-          <p className="font-semibold text-(--cn-text-secondary)">{demoUsers.freelancer.name}</p>
-          <p className="mt-0.5">Demo mode · local fixtures</p>
+        <div className="mt-auto flex flex-col gap-3 text-xs">
+          <span className="chip mx-3 w-fit" title="This view still shows demo fixtures">
+            Demo data
+          </span>
+          <UserMenu name={session.user.name} email={session.user.email} />
         </div>
       </aside>
       <main className="min-w-0 flex-1 px-6 py-8">
