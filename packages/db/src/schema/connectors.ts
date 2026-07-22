@@ -31,7 +31,9 @@ export const connectorInstallations = pgTable(
     status: text("status", { enum: ["connected", "error", "revoked", "mock"] }).notNull(),
     // Opaque reference into the credential vault (spec §25.6–7).
     credentialRef: text("credential_ref"),
-    installedBy: text("installed_by").notNull(),
+    // Optional installer metadata — not part of the ConnectorInstallation
+    // contract, so nullable (the Gateway records the actor via the audit trail).
+    installedBy: text("installed_by"),
     installedAt: timestamp("installed_at", { withTimezone: true }).notNull().defaultNow(),
     revokedAt: timestamp("revoked_at", { withTimezone: true }),
   },

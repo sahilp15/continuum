@@ -24,9 +24,12 @@
   },
   "dependencies": {
     "@continuum/auth": "workspace:*",
+    "@continuum/connectors-core": "workspace:*",
     "@continuum/context": "workspace:*",
     "@continuum/contracts": "workspace:*",
+    "@continuum/integrations": "workspace:*",
     "@continuum/memory": "workspace:*",
+    "@continuum/observability": "workspace:*",
     "@continuum/preflight": "workspace:*",
     "@continuum/testing": "workspace:*",
     "@electric-sql/pglite": "catalog:",
@@ -35,6 +38,7 @@
     "zod": "catalog:"
   },
   "devDependencies": {
+    "@continuum/connectors": "workspace:*",
     "@types/node": "catalog:",
     "@types/pg": "catalog:",
     "drizzle-kit": "catalog:",
