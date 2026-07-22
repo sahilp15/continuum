@@ -1,4 +1,10 @@
-import { newId, type Memory, type Source, type Suggestion } from "@continuum/contracts";
+import {
+  newId,
+  type Memory,
+  type MemoryType,
+  type Source,
+  type Suggestion,
+} from "@continuum/contracts";
 import { isMemoryActive } from "./validity.js";
 
 /**
@@ -98,6 +104,57 @@ export function extractCandidates(
       resolvedAt: null,
       resolvedBy: null,
     });
+  }
+
+  // Labeled-line candidates: brand guides and briefs commonly state voice,
+  // audience, product, rules, and facts as "Label: value" lines. These become
+  // low-friction candidates so onboarding review is meaningful — still strictly
+  // pending, and instruction-like lines are skipped entirely.
+  const LABELED: Array<{ re: RegExp; type: MemoryType; label: string }> = [
+    { re: /^\s*(?:brand\s+voice|voice|tone)\s*[:-]\s*(.+)$/i, type: "voice", label: "Voice" },
+    {
+      re: /^\s*(?:target\s+audience|audience|readers)\s*[:-]\s*(.+)$/i,
+      type: "audience",
+      label: "Audience",
+    },
+    {
+      re: /^\s*(?:product(?:\s+name)?)\s*[:-]\s*(.+)$/i,
+      type: "product",
+      label: "Product",
+    },
+    { re: /^\s*(?:rule|guideline)\s*[:-]\s*(.+)$/i, type: "hard_rule", label: "Rule" },
+    { re: /^\s*(?:fact|key\s+fact)\s*[:-]\s*(.+)$/i, type: "fact", label: "Fact" },
+  ];
+  for (const line of source.content.split(/\r?\n/)) {
+    if (detectInjectionAttempt(line)) continue;
+    for (const { re, type, label } of LABELED) {
+      const match = line.match(re);
+      if (!match) continue;
+      const value = (match[1] ?? "").trim();
+      if (value.length < 2) break;
+      suggestions.push({
+        id: newId("sug"),
+        organizationId: source.organizationId,
+        spaceId: source.spaceId,
+        projectId: null,
+        memoryType: type,
+        title: `${label}: ${value.slice(0, 80)}`,
+        proposedText: value.slice(0, 4000),
+        structuredValue: null,
+        conflictsWithMemoryId: null,
+        previousValueText: null,
+        sourceId: source.id,
+        sourceExcerpt: line.trim().slice(0, 500),
+        confidence: injectionSuspected ? 0.3 : 0.7,
+        rationale: `A "${label}" statement was found in this source.`,
+        suggestedExpiresAt: null,
+        status: "pending",
+        createdAt: timestamp,
+        resolvedAt: null,
+        resolvedBy: null,
+      });
+      break; // one label per line
+    }
   }
 
   return { suggestions, injectionSuspected };

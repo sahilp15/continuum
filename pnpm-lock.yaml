@@ -316,9 +316,21 @@ importers:
 
   packages/db:
     dependencies:
+      '@continuum/auth':
+        specifier: workspace:*
+        version: link:../auth
+      '@continuum/context':
+        specifier: workspace:*
+        version: link:../context
       '@continuum/contracts':
         specifier: workspace:*
         version: link:../contracts
+      '@continuum/memory':
+        specifier: workspace:*
+        version: link:../memory
+      '@continuum/preflight':
+        specifier: workspace:*
+        version: link:../preflight
       '@continuum/testing':
         specifier: workspace:*
         version: link:../testing

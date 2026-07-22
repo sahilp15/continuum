@@ -1,6 +1,7 @@
 import { notFound } from "next/navigation";
 import type { Memory } from "@continuum/contracts";
-import { getDemoActor, getDemoEnvironment } from "@/lib/demo";
+import { requireActor } from "@/lib/actor";
+import { getEnv } from "@/lib/services";
 
 export const metadata = { title: "Space" };
 export const dynamic = "force-dynamic";
@@ -16,15 +17,15 @@ const STATUS_STYLE: Record<Memory["status"], string> = {
 
 export default async function SpacePage({ params }: { params: Promise<{ spaceId: string }> }) {
   const { spaceId } = await params;
-  const env = getDemoEnvironment();
-  const actor = getDemoActor();
+  const env = getEnv();
+  const actor = await requireActor();
 
-  const space = env.getSpace(spaceId);
   const memories = await env.memoryService.listSpaceMemories(actor, spaceId).catch(() => null);
+  const space = await env.tenancy.getSpace(spaceId);
   // Resource-hiding: unauthorized and nonexistent Spaces look identical.
   if (!space || !memories) notFound();
 
-  const projects = env.data.projects.filter((p) => p.spaceId === spaceId);
+  const projects = await env.tenancy.listSpaceProjects(spaceId);
   const sources = await env.store.listSpaceSources(spaceId);
   const byType = new Map<string, Memory[]>();
   for (const memory of memories) {

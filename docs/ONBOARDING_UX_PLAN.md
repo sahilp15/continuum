@@ -57,3 +57,14 @@ progress · a clearly-labeled Demo Mode is available without being mistaken for 
 
 A brand-new user completes the flow and reaches their **first real Context Receipt** generated from
 their own persisted, approved memory — verified by a Playwright walkthrough.
+
+## As-built (Phase 3 — verified)
+
+Implemented at `apps/web/src/app/(onboarding)/onboarding/*` (page + `actions.ts` + `stepper.tsx` +
+layout). Progress persists in the `onboarding_state` table (`packages/db`) + `users.onboardingStatus`;
+the `(app)` shell gates un-onboarded users into the flow, and completion routes to `/home`. The eight
+steps run entirely on the real DB via `createDbEnvironment` (tenancy create, `importSource`,
+`resolveSuggestion`, `generateContext`). Verified by `apps/web/e2e/onboarding.spec.ts`: a brand-new
+user signs up, completes all steps, and reaches a real Context Receipt, then lands on the DB-backed
+dashboard. Connectors in step 4 are honest "Coming soon"; manual paste/upload import is live and
+needs no credentials.

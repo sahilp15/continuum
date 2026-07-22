@@ -1,7 +1,22 @@
-import { index, jsonb, pgTable, text, timestamp, uniqueIndex } from "drizzle-orm/pg-core";
+import { index, integer, jsonb, pgTable, text, timestamp, uniqueIndex } from "drizzle-orm/pg-core";
 import { organizations, users } from "./identity.js";
 
 /** Context organization: personal profiles, Spaces, Projects (spec §4, §27). */
+
+/**
+ * Onboarding progress, persisted so the guided flow is resumable across
+ * refreshes and sessions. `data` holds step answers (profile inputs, chosen
+ * Space/Project/source ids) as the user advances.
+ */
+export const onboardingState = pgTable("onboarding_state", {
+  userId: text("user_id")
+    .primaryKey()
+    .references(() => users.id),
+  step: integer("step").notNull().default(0),
+  persona: text("persona"),
+  data: jsonb("data").$type<Record<string, unknown>>().notNull().default({}),
+  updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
+});
 
 export const personalProfiles = pgTable("personal_profiles", {
   userId: text("user_id")
