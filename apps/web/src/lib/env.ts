@@ -22,6 +22,16 @@ const schema = z
 
     // Local test-login for Playwright. MUST be impossible to enable in prod.
     CONTINUUM_TEST_LOGIN: z.string().optional(),
+
+    // Connector credential vault: versioned AES-256-GCM keys, comma-separated
+    // `v<N>:<base64 32-byte key>`. Lives OUTSIDE the database. Absent → the
+    // credential vault is not configured and connectors show "Setup required".
+    CONTINUUM_CREDENTIAL_KEYS: z.string().min(1).optional(),
+
+    // Google *connector* app (Workspace data: Drive/Gmail/Calendar readonly).
+    // A DISTINCT OAuth client from the Google login app — never shared.
+    GOOGLE_CONNECTOR_CLIENT_ID: z.string().min(1).optional(),
+    GOOGLE_CONNECTOR_CLIENT_SECRET: z.string().min(1).optional(),
   })
   .superRefine((env, ctx) => {
     // Next runs `next build` with NODE_ENV=production, but runtime secrets aren't
@@ -53,6 +63,14 @@ const schema = z
         message: "GOOGLE_LOGIN_CLIENT_SECRET is required when GOOGLE_LOGIN_CLIENT_ID is set.",
       });
     }
+    if (env.GOOGLE_CONNECTOR_CLIENT_ID && !env.GOOGLE_CONNECTOR_CLIENT_SECRET) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ["GOOGLE_CONNECTOR_CLIENT_SECRET"],
+        message:
+          "GOOGLE_CONNECTOR_CLIENT_SECRET is required when GOOGLE_CONNECTOR_CLIENT_ID is set.",
+      });
+    }
   });
 
 function parse() {
@@ -71,6 +89,17 @@ export const env = parse();
 /** Google login is available only when its login-specific credentials are set. */
 export const googleLoginEnabled = Boolean(
   env.GOOGLE_LOGIN_CLIENT_ID && env.GOOGLE_LOGIN_CLIENT_SECRET,
+);
+
+/** The connector credential vault is usable only when its keys are configured. */
+export const credentialVaultConfigured = Boolean(env.CONTINUUM_CREDENTIAL_KEYS);
+
+/** The Google Workspace *connector* is available only when its own (separate
+ *  from login) OAuth credentials AND the credential vault are configured. */
+export const googleConnectorConfigured = Boolean(
+  env.GOOGLE_CONNECTOR_CLIENT_ID &&
+  env.GOOGLE_CONNECTOR_CLIENT_SECRET &&
+  env.CONTINUUM_CREDENTIAL_KEYS,
 );
 
 /**
