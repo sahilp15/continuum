@@ -1,11 +1,21 @@
 import "server-only";
 import { headers } from "next/headers";
+import { redirect } from "next/navigation";
 import { sessionActor, type Actor } from "@continuum/auth";
 import { auth } from "./auth";
 
-/** The current Better Auth session (server-only), or null when signed out. */
+/**
+ * The current Better Auth session (server-only), or null when signed out.
+ * Fails safe: a malformed/expired cookie or a transient session-lookup error is
+ * treated as "signed out" (null) rather than throwing — so a stale session can
+ * never blank a protected page; it just routes the user back to sign-in.
+ */
 export async function getSession() {
-  return auth.api.getSession({ headers: await headers() });
+  try {
+    return await auth.api.getSession({ headers: await headers() });
+  } catch {
+    return null;
+  }
 }
 
 /**
@@ -19,9 +29,15 @@ export async function getCurrentActor(): Promise<Actor | null> {
   return sessionActor(session.user.id, "web_app");
 }
 
-/** Like {@link getCurrentActor} but throws when unauthenticated (route guards). */
+/**
+ * Resolve the current Actor, or **redirect to sign-in** when the session is
+ * missing/expired (e.g. after a dev restart clears the in-memory DB, leaving a
+ * stale cookie). Redirecting — rather than throwing — keeps protected pages and
+ * actions consistent with the layout gate and avoids an uncaught error that
+ * would blank the page. `redirect()` throws NEXT_REDIRECT, which Next handles.
+ */
 export async function requireActor(): Promise<Actor> {
   const actor = await getCurrentActor();
-  if (!actor) throw new Error("unauthenticated");
+  if (!actor) redirect("/sign-in");
   return actor;
 }

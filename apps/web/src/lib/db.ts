@@ -18,11 +18,13 @@ async function init(): Promise<DatabaseHandle> {
     isBuildPhase
       ? { driver: "pglite", dataDir: "memory://" }
       : {
-          // In dev, an in-memory PGlite (single process instance) is the most
-          // reliable choice — file-backed PGlite can lock-contend and abort the
-          // WASM under concurrent requests. Data survives HMR (globalThis
-          // singleton) but resets on a full restart; set CONTINUUM_PGLITE_DIR to
-          // a path to opt into persistence. Production uses DATABASE_URL.
+          // Dev default: in-memory PGlite — the reliable choice. File-backed
+          // PGlite can abort the WASM when reopening a populated data dir, so we
+          // don't persist by default. Data resets on a full server restart (a
+          // stale cookie then lands you back on sign-in — handled gracefully by
+          // requireActor). For durable data set DATABASE_URL to a real Postgres
+          // (what production uses); CONTINUUM_PGLITE_DIR can point at a path but
+          // file-backed persistence is best-effort only.
           dataDir: process.env.CONTINUUM_PGLITE_DIR ?? "memory://",
         },
   );
