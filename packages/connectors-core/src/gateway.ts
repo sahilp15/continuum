@@ -1,7 +1,9 @@
 import {
   connectorManifestSchema,
   ContinuumError,
+  newId,
   type ConnectorCapability,
+  type ConnectorDataMode,
   type ConnectorInstallation,
 } from "@continuum/contracts";
 import type { CredentialVaultProvider } from "@continuum/integrations";
@@ -72,6 +74,19 @@ export interface ConnectorGatewayDeps {
   now?: () => Date;
 }
 
+/** Input to {@link ConnectorGateway.connect}. `credential` is the OAuth
+ *  authorization code / API key material the connector exchanges and seals into
+ *  the vault — it is NEVER a login-provider token (login and connector auth stay
+ *  strictly separate). */
+export interface GatewayConnectInput {
+  organizationId: string;
+  spaceId: string | null;
+  connectorId: string;
+  dataMode: ConnectorDataMode;
+  credential: string | null;
+  config?: Record<string, string>;
+}
+
 /**
  * The Connector Gateway (spec §15, §20). Every connector call flows through
  * here so capability enforcement, revocation, idempotency, confirmation, and
@@ -117,6 +132,76 @@ export function createConnectorGateway(deps: ConnectorGatewayDeps) {
   }
 
   return {
+    /**
+     * Establish an installation. The Gateway mints the installation id and an
+     * opaque credential ref, hands the connector a provisional installation so
+     * it can seal its exchanged token into the vault at that ref, then persists
+     * the result. If the connector sealed nothing (e.g. a mock, or a live-only
+     * connector), no dangling credential ref is kept. Always audited.
+     *
+     * This is deliberately separate from login/social auth — the `credential`
+     * here is a connector authorization code, never a reused login token.
+     */
+    async connect(input: GatewayConnectInput): Promise<ConnectorInstallation> {
+      const connector = deps.registry.get(input.connectorId);
+      if (!connector) throw new ContinuumError("not_found", "connector not found");
+
+      const installationId = newId("cin");
+      const credentialRef = newId("cred");
+      const installedAt = now().toISOString();
+      const provisional: ConnectorInstallation = {
+        id: installationId,
+        organizationId: input.organizationId,
+        spaceId: input.spaceId,
+        connectorId: input.connectorId,
+        dataMode: input.dataMode,
+        status: "connected",
+        credentialRef,
+        grantedScopes: [],
+        installedAt,
+        revokedAt: null,
+      };
+      const context: ConnectorExecutionContext = {
+        organizationId: input.organizationId,
+        spaceId: input.spaceId,
+        installation: provisional,
+        vault: deps.vault,
+        logger: deps.logger.child({ connectorId: input.connectorId, installationId }),
+      };
+
+      const result = await connector.connect(
+        {
+          organizationId: input.organizationId,
+          spaceId: input.spaceId,
+          dataMode: input.dataMode,
+          credential: input.credential,
+          config: input.config ?? {},
+        },
+        context,
+      );
+
+      // Keep the credential ref only if the connector actually sealed a secret.
+      const sealed = (await deps.vault.retrieve(credentialRef)) !== null;
+      const installation: ConnectorInstallation = {
+        ...provisional,
+        status: result.status === "mock" ? "mock" : "connected",
+        grantedScopes: result.grantedScopes,
+        credentialRef: sealed ? credentialRef : null,
+      };
+      await deps.installations.insert(installation);
+      deps.audit.record({
+        action: "connector.connect",
+        resourceType: "connector_installation",
+        resourceId: installationId,
+        detail: {
+          connectorId: input.connectorId,
+          status: installation.status,
+          organizationId: input.organizationId,
+        },
+      });
+      return installation;
+    },
+
     async search(
       installationId: string,
       input: ConnectorSearchInput,

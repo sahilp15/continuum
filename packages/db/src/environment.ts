@@ -3,6 +3,7 @@ import {
   newId,
   type ContextBundle,
   type ContextRequest,
+  type NormalizedExternalItem,
   type PreflightResult,
   type Source,
   type Suggestion,
@@ -32,6 +33,13 @@ export interface ImportSourceResult {
   source: Source;
   suggestions: Suggestion[];
   injectionSuspected: boolean;
+}
+
+export interface ImportConnectorItemInput {
+  /** The item fetched through the capability-enforced Gateway
+   *  (`gateway.fetch`) — the env never touches the connector directly. */
+  item: NormalizedExternalItem;
+  installationId: string;
 }
 
 /**
@@ -111,6 +119,60 @@ export function createDbEnvironment(db: ContinuumDatabase, now: () => Date = () 
       });
 
       const existing = await store.listSpaceMemories(input.spaceId);
+      const { suggestions, injectionSuspected } = extractCandidates(source, existing, now());
+      for (const suggestion of suggestions) {
+        await store.insertSuggestion(suggestion);
+      }
+      return { source, suggestions, injectionSuspected };
+    },
+
+    /**
+     * Import a normalized connector item as a source and extract candidate
+     * memories — the connector counterpart to `importSource`. The item text is
+     * DATA exactly like pasted text: extraction only ever yields `pending`
+     * suggestions (injection-safe), never approved memory. The item must already
+     * be Space-scoped and the actor is authorized against that Space.
+     */
+    async importConnectorItem(
+      actor: Actor,
+      input: ImportConnectorItemInput,
+    ): Promise<ImportSourceResult> {
+      const { item, installationId } = input;
+      if (!item.spaceId) {
+        throw new Error("connector item is not Space-scoped; cannot import");
+      }
+      await assertSpaceAccess(authz, actor, item.spaceId);
+      const timestamp = now().toISOString();
+      const source: Source = {
+        id: newId("src"),
+        organizationId: item.organizationId,
+        spaceId: item.spaceId,
+        kind: "connector_item",
+        title: item.title ?? item.externalId,
+        content: item.content ?? item.summary ?? "",
+        externalUrl: item.externalUrl ?? null,
+        connectorInstallationId: installationId,
+        authority: "connected_system",
+        sensitivity: item.sensitivity,
+        contentHash: null,
+        importedBy: actor.userId,
+        createdAt: timestamp,
+        deletedAt: null,
+      };
+      await store.insertSource(source);
+      audit.record({
+        actorId: actor.userId,
+        action: "source.import",
+        resourceType: "source",
+        resourceId: source.id,
+        detail: {
+          organizationId: source.organizationId,
+          spaceId: source.spaceId,
+          connectorInstallationId: installationId,
+        },
+      });
+
+      const existing = await store.listSpaceMemories(item.spaceId);
       const { suggestions, injectionSuspected } = extractCandidates(source, existing, now());
       for (const suggestion of suggestions) {
         await store.insertSuggestion(suggestion);
