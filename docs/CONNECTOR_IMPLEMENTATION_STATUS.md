@@ -20,14 +20,16 @@ clearly-labeled Demo Mode.
 
 ## Per-connector status
 
-| Connector       | This pass          | Auth model                                          | Notes                                                                      |
-| --------------- | ------------------ | --------------------------------------------------- | -------------------------------------------------------------------------- |
-| Google Drive    | **Real (Phase 6)** | own OAuth, `drive.readonly`                         | search/read/normalize/import; credential-gated                             |
-| Gmail           | **Real (Phase 6)** | own OAuth, `gmail.readonly`                         | search/read thread/normalize/import; no send scope in MVP                  |
-| Google Calendar | **Real (Phase 6)** | own OAuth, `calendar.readonly` (or events.readonly) | search/read event/normalize/import                                         |
-| Slack           | **Placeholder**    | —                                                   | honest manifest + "Coming soon"/"Setup required"; mock twin Demo-Mode-only |
-| Notion          | **Placeholder**    | —                                                   | same                                                                       |
-| GitHub          | **Placeholder**    | —                                                   | same                                                                       |
+| Connector                                   | This pass                                                                     | Auth model                          | Notes                                                                                                                                                                          |
+| ------------------------------------------- | ----------------------------------------------------------------------------- | ----------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| Google Workspace (Drive + Gmail + Calendar) | **Built ✓, unit-tested vs mocked HTTP; LIVE verification pending user creds** | own OAuth app, readonly scopes only | `packages/connectors/src/google/*`: one authorization, raw-fetch adapters, lazy token refresh (re-sealed in vault), service-prefixed ids, OAuth connect/callback routes in web |
+| Slack                                       | **Placeholder**                                                               | —                                   | honest manifest + "Coming soon"; mock twin Demo-Mode-only                                                                                                                      |
+| Notion                                      | **Placeholder**                                                               | —                                   | same                                                                                                                                                                           |
+| GitHub                                      | **Placeholder**                                                               | —                                   | same                                                                                                                                                                           |
+
+> **Not "Connected" yet:** the Google adapter is complete and tested against mocked
+> HTTP, but per the rule above it is shown as "Setup required" / "Ready to connect"
+> until a real OAuth + retrieval flow is verified end to end with live credentials.
 
 ## Google login vs Google connector (must stay separate)
 

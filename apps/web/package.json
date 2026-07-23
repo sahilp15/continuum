@@ -13,6 +13,8 @@
   },
   "dependencies": {
     "@continuum/auth": "workspace:*",
+    "@continuum/connectors": "workspace:*",
+    "@continuum/connectors-core": "workspace:*",
     "@continuum/context": "workspace:*",
     "@continuum/contracts": "workspace:*",
     "@continuum/db": "workspace:*",

@@ -121,6 +121,12 @@ importers:
       '@continuum/auth':
         specifier: workspace:*
         version: link:../../packages/auth
+      '@continuum/connectors':
+        specifier: workspace:*
+        version: link:../../packages/connectors
+      '@continuum/connectors-core':
+        specifier: workspace:*
+        version: link:../../packages/connectors-core
       '@continuum/context':
         specifier: workspace:*
         version: link:../../packages/context
@@ -247,6 +253,9 @@ importers:
         specifier: workspace:*
         version: link:../observability
     devDependencies:
+      '@types/node':
+        specifier: 'catalog:'
+        version: 22.20.1
       typescript:
         specifier: 'catalog:'
         version: 5.9.3
