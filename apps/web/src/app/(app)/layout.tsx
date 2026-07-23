@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { redirect } from "next/navigation";
+import { ThemeToggle } from "@/components/theme";
 import { getCurrentActor, getSession } from "@/lib/actor";
 import { getActiveSpace } from "@/lib/active-space";
 import { getEnv, getOnboarding } from "@/lib/services";
@@ -75,20 +76,23 @@ export default async function AppLayout({ children }: { children: React.ReactNod
               <span className="text-sm text-(--cn-text-tertiary)">No Space yet</span>
             )}
           </div>
-          <nav
-            className="flex gap-3 overflow-x-auto text-xs font-medium sm:hidden"
-            aria-label="Primary (mobile)"
-          >
-            {NAV.slice(0, 5).map((item) => (
-              <Link
-                key={item.href}
-                href={item.href}
-                className="whitespace-nowrap text-(--cn-text-secondary)"
-              >
-                {item.label}
-              </Link>
-            ))}
-          </nav>
+          <div className="flex items-center gap-3">
+            <nav
+              className="flex gap-3 overflow-x-auto text-xs font-medium sm:hidden"
+              aria-label="Primary (mobile)"
+            >
+              {NAV.slice(0, 5).map((item) => (
+                <Link
+                  key={item.href}
+                  href={item.href}
+                  className="whitespace-nowrap text-(--cn-text-secondary)"
+                >
+                  {item.label}
+                </Link>
+              ))}
+            </nav>
+            <ThemeToggle />
+          </div>
         </header>
         <div className="px-6 py-8">{children}</div>
       </main>

@@ -1,18 +1,20 @@
+import Link from "next/link";
 import { createDrizzleInstallationStore, listUserOrganizationIds } from "@continuum/db";
 import type { ConnectorInstallation } from "@continuum/contracts";
 import { requireActor } from "@/lib/actor";
+import { getActiveSpace } from "@/lib/active-space";
 import { credentialVaultConfigured, googleConnectorConfigured } from "@/lib/env";
 import { getEnv } from "@/lib/services";
+import { disconnectInstallation } from "./actions";
 
 export const metadata = { title: "Connectors" };
 export const dynamic = "force-dynamic";
 
 /**
  * Connector directory. Honest states only — nothing shows "Connected" until a
- * real OAuth + retrieval flow is verified end to end. The user's real
- * installations are read from the database; the catalog below is the honest
- * roadmap. Google Workspace needs its own OAuth app + the credential vault
- * (Phase 6); the rest are Coming soon.
+ * real OAuth + retrieval flow is verified end to end. Real installations come
+ * from the database; the catalog is the honest roadmap. The Google card only
+ * becomes actionable when its OAuth app + the credential vault are configured.
  */
 const CATALOG = [
   {
@@ -55,14 +57,53 @@ const INSTALL_LABEL: Record<ConnectorInstallation["status"], string> = {
   revoked: "Disconnected",
 };
 
-export default async function ConnectorsPage() {
+const NOTICE: Record<string, { tone: "ok" | "error"; text: string }> = {
+  connected: { tone: "ok", text: "Google Workspace connected. You can browse and import now." },
+  google_denied: {
+    tone: "error",
+    text: "Google authorization was cancelled. Nothing was connected — try again when ready.",
+  },
+  invalid_state: {
+    tone: "error",
+    text: "The authorization attempt could not be verified (state mismatch). Please try again.",
+  },
+  connect_failed: {
+    tone: "error",
+    text: "Google rejected the authorization exchange. Check the OAuth app configuration and try again.",
+  },
+  not_configured: {
+    tone: "error",
+    text: "The connector is not configured on the server yet (missing credentials or vault keys).",
+  },
+  no_space: { tone: "error", text: "Create a Space first, then connect an app to feed it." },
+  signed_out: {
+    tone: "error",
+    text: "You were signed out during authorization. Sign in and retry.",
+  },
+  not_found: { tone: "error", text: "That connection was not found." },
+};
+
+export default async function ConnectorsPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ connected?: string; error?: string }>;
+}) {
   const actor = await requireActor();
   const env = getEnv();
+  const params = await searchParams;
+  const notice = params.connected
+    ? NOTICE.connected
+    : params.error
+      ? (NOTICE[params.error] ?? NOTICE.connect_failed)
+      : null;
+
   const orgIds = await listUserOrganizationIds(env.db, actor.userId);
   const installStore = createDrizzleInstallationStore(env.db);
   const installations = (
     await Promise.all(orgIds.map((orgId) => installStore.listByOrganization(orgId)))
   ).flat();
+  const spaces = await env.tenancy.listUserSpaces(actor.userId);
+  const activeSpace = await getActiveSpace(spaces);
 
   return (
     <div className="max-w-4xl">
@@ -72,6 +113,17 @@ export default async function ConnectorsPage() {
         permission. Nothing is imported or remembered without your approval, and a connector is
         never shown as connected until its authorization and data retrieval are verified.
       </p>
+
+      {notice ? (
+        <p
+          role="status"
+          aria-live="polite"
+          className="panel mt-4 p-3 text-sm"
+          style={{ borderColor: notice.tone === "error" ? "var(--cn-error)" : "var(--cn-accent)" }}
+        >
+          {notice.text}
+        </p>
+      ) : null}
 
       {/* Credential-vault readiness — honest, no fake success. */}
       <div className="panel mt-6 flex items-center justify-between gap-4 p-4">
@@ -107,7 +159,21 @@ export default async function ConnectorsPage() {
                     {inst.grantedScopes.join(" · ") || "no scopes"}
                   </p>
                 </div>
-                <span className="chip">{INSTALL_LABEL[inst.status]}</span>
+                <div className="flex items-center gap-2">
+                  <span className="chip">{INSTALL_LABEL[inst.status]}</span>
+                  {inst.status === "connected" ? (
+                    <>
+                      <Link href={`/connectors/${inst.id}`} className="btn-secondary text-sm">
+                        Browse &amp; import
+                      </Link>
+                      <form action={disconnectInstallation.bind(null, inst.id)}>
+                        <button type="submit" className="btn-secondary text-sm">
+                          Disconnect
+                        </button>
+                      </form>
+                    </>
+                  ) : null}
+                </div>
               </li>
             ))}
           </ul>
@@ -119,10 +185,8 @@ export default async function ConnectorsPage() {
         <h2 className="font-display text-xl">Available to add</h2>
         <div className="mt-3 grid gap-4 sm:grid-cols-2">
           {CATALOG.map((c) => {
-            const label =
-              c.name === "Google Workspace" && googleConnectorConfigured
-                ? "Ready to connect"
-                : CATALOG_LABEL[c.state];
+            const googleReady = c.name === "Google Workspace" && googleConnectorConfigured;
+            const label = googleReady ? "Ready to connect" : CATALOG_LABEL[c.state];
             return (
               <div key={c.name} className="panel flex flex-col gap-2 p-5">
                 <div className="flex items-center justify-between">
@@ -131,19 +195,28 @@ export default async function ConnectorsPage() {
                 </div>
                 <p className="font-data text-xs text-(--cn-text-tertiary)">{c.category}</p>
                 <p className="text-sm text-(--cn-text-secondary)">{c.detail}</p>
-                <button
-                  type="button"
-                  disabled
-                  aria-disabled="true"
-                  className="btn-secondary mt-2 w-fit cursor-not-allowed text-sm opacity-60"
-                  title={
-                    c.state === "setup_required"
-                      ? "Requires a connector OAuth app and the credential vault"
-                      : "Not yet available"
-                  }
-                >
-                  {label}
-                </button>
+                {googleReady ? (
+                  <a
+                    href={`/api/connectors/google/connect${activeSpace ? `?spaceId=${activeSpace.id}` : ""}`}
+                    className="btn-primary mt-2 w-fit text-sm"
+                  >
+                    Connect Google
+                  </a>
+                ) : (
+                  <button
+                    type="button"
+                    disabled
+                    aria-disabled="true"
+                    className="btn-secondary mt-2 w-fit cursor-not-allowed text-sm opacity-60"
+                    title={
+                      c.state === "setup_required"
+                        ? "Requires a connector OAuth app and the credential vault"
+                        : "Not yet available"
+                    }
+                  >
+                    {label}
+                  </button>
+                )}
               </div>
             );
           })}

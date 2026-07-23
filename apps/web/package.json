@@ -13,6 +13,8 @@
   },
   "dependencies": {
     "@continuum/auth": "workspace:*",
+    "@continuum/connectors": "workspace:*",
+    "@continuum/connectors-core": "workspace:*",
     "@continuum/context": "workspace:*",
     "@continuum/contracts": "workspace:*",
     "@continuum/db": "workspace:*",
@@ -24,6 +26,7 @@
     "@electric-sql/pglite": "catalog:",
     "better-auth": "^1.6.23",
     "next": "^15.5.4",
+    "next-themes": "^0.4.6",
     "react": "^19.1.0",
     "react-dom": "^19.1.0",
     "server-only": "^0.0.1",
