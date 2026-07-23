@@ -13,6 +13,31 @@ describe("redact", () => {
     expect(out.authorization).toBe("[redacted]");
     expect((out.nested as Record<string, unknown>).ok).toBe(1);
   });
+
+  it("redacts encryption key material and session tokens but keeps the key VERSION", () => {
+    const out = redact({
+      encryptionKey: "raw-key-bytes",
+      dataKey: "dek-bytes",
+      dek: "abc",
+      passphrase: "hunter2",
+      sessionToken: "sess-123",
+      ciphertext: "ZW5j",
+      authTag: "dGFn",
+      iv: "aXY=",
+      keyVersion: 2, // non-secret — must stay visible for rotation observability
+      connectorId: "gmail",
+    }) as Record<string, unknown>;
+    expect(out.encryptionKey).toBe("[redacted]");
+    expect(out.dataKey).toBe("[redacted]");
+    expect(out.dek).toBe("[redacted]");
+    expect(out.passphrase).toBe("[redacted]");
+    expect(out.sessionToken).toBe("[redacted]");
+    expect(out.ciphertext).toBe("[redacted]");
+    expect(out.authTag).toBe("[redacted]");
+    expect(out.iv).toBe("[redacted]");
+    expect(out.keyVersion).toBe(2);
+    expect(out.connectorId).toBe("gmail");
+  });
 });
 
 describe("logger", () => {

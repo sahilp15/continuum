@@ -3,11 +3,15 @@ export type LogLevel = "debug" | "info" | "warn" | "error";
 const LEVEL_RANK: Record<LogLevel, number> = { debug: 10, info: 20, warn: 30, error: 40 };
 
 /**
- * Keys whose values are always redacted before a log line is emitted.
- * Secrets, OAuth tokens, and raw credentials must never reach logs (spec §25, §39).
+ * Keys whose values are always redacted before a log line is emitted. Secrets,
+ * OAuth access/refresh tokens, session tokens, raw credentials, AND encryption
+ * key material must never reach logs (spec §25, §39). The encryption-key terms
+ * (`*key`, `dek`, `kek`, `passphrase`, `ciphertext`, `iv`, `authTag`) matter for
+ * the credential vault; the non-secret key VERSION is deliberately not matched
+ * so rotation can be observed.
  */
 const SENSITIVE_KEY_PATTERN =
-  /(secret|token|password|credential|authorization|api[_-]?key|cookie|refresh)/i;
+  /(secret|token|password|passphrase|credential|authorization|api[_-]?key|cookie|refresh|session|encryption|private[_-]?key|[_-]?key$|^key$|\bdek\b|\bkek\b|ciphertext|authtag|auth_tag|\biv\b)/i;
 
 export function redact(value: unknown, depth = 0): unknown {
   if (depth > 6) return "[depth-limited]";

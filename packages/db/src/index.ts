@@ -13,6 +13,13 @@ export { parseDbEnv, type DbEnv } from "./env.js";
 // fully-wired DB environment (production counterpart to createDemoEnvironment).
 export { createDrizzleMemoryStore } from "./stores/memory-store.js";
 export { createDrizzleAuthStore } from "./stores/auth-store.js";
+export { createDrizzleInstallationStore } from "./stores/installation-store.js";
+export { createDrizzleSealedSecretStore } from "./stores/credential-vault-store.js";
+export {
+  createConnectorRuntime,
+  syncConnectorDefinitions,
+  type ConnectorRuntime,
+} from "./connector-runtime.js";
 export { createDbAuditSink, type DbAuditSink } from "./audit.js";
 export {
   createTenancyRepository,

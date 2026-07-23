@@ -7,15 +7,16 @@ clearly-labeled Demo Mode.
 
 ## Platform pieces
 
-| Piece                                                                           | Status                                                                | Notes                                     |
-| ------------------------------------------------------------------------------- | --------------------------------------------------------------------- | ----------------------------------------- |
-| Connector SDK (`ContinuumConnector`, manifest schema, `NormalizedExternalItem`) | Real                                                                  | `packages/connectors-core`                |
-| Connector Gateway (capability enforcement, revocation, idempotency, audit)      | Real                                                                  | `packages/connectors-core/src/gateway.ts` |
-| InstallationStore                                                               | In-memory today → **Drizzle-backed (Phase 5)**                        |                                           |
-| Credential vault                                                                | In-memory `Map` today → **AES-256-GCM versioned-key vault (Phase 5)** | outside-DB key, rotation                  |
-| OAuth orchestration (connect/callback/refresh/revoke)                           | **Build in Phase 5** in the Gateway (not adapters)                    |                                           |
-| Health states + last-sync                                                       | Types real, runtime mock → **real in Phase 5**                        | never a bare boolean                      |
-| Source-import pipeline (item → normalize → extract → inbox)                     | **Build in Phase 5**                                                  | extraction engine already real            |
+| Piece                                                                           | Status                                                       | Notes                                                                   |
+| ------------------------------------------------------------------------------- | ------------------------------------------------------------ | ----------------------------------------------------------------------- |
+| Connector SDK (`ContinuumConnector`, manifest schema, `NormalizedExternalItem`) | Real                                                         | `packages/connectors-core`                                              |
+| Connector Gateway (capability enforcement, revocation, idempotency, audit)      | Real                                                         | `packages/connectors-core/src/gateway.ts`                               |
+| InstallationStore                                                               | **Drizzle-backed ✓ (Phase 5)**                               | `packages/db/src/stores/installation-store.ts`; scopes hydrated         |
+| Credential vault                                                                | **AES-256-GCM versioned-key vault ✓ (Phase 5)**              | `packages/integrations/src/vault.ts`; keys outside DB, rotation tested  |
+| OAuth orchestration                                                             | **connect + revoke ✓ (Phase 5)**; callback/refresh → Phase 6 | `Gateway.connect` seals via vault; provider callback is Google-specific |
+| Health states + last-sync                                                       | Installation status real ✓; sync jobs/cursors → later        | never a bare boolean                                                    |
+| Source-import pipeline (item → normalize → extract → inbox)                     | **Real ✓ (Phase 5)**                                         | `env.importConnectorItem` → injection-safe `extractCandidates`          |
+| Log redaction of tokens/keys                                                    | **Hardened ✓ (Phase 5)**                                     | `packages/observability`; covers key material + session tokens          |
 
 ## Per-connector status
 
