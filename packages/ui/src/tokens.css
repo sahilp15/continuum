@@ -1,10 +1,13 @@
 /*
- * Continuum design tokens (spec §29).
+ * Continuum design tokens (spec §29 + docs/CONTINUUM_DESIGN_SYSTEM.md).
  * Brand personality: calm, intelligent, trustworthy, precise, quietly futuristic.
- * Foundation: warm ink neutrals. Accent: a single deep teal ("the thread").
+ * Foundation: warm ink neutrals. Accent: ONE signal blue ("the thread").
  * No purple AI gradients, no neon, no glassmorphism.
+ * Dark mode: next-themes stamps data-theme="dark" on <html> (system-aware).
  */
 :root {
+  color-scheme: light;
+
   /* Neutral foundation — light */
   --cn-bg: #faf9f7;
   --cn-surface: #ffffff;
@@ -15,11 +18,11 @@
   --cn-border: #e5e2dc;
   --cn-border-strong: #cfcbc3;
 
-  /* The thread — Continuum's single accent */
-  --cn-accent: #0f766e;
-  --cn-accent-hover: #115e59;
-  --cn-accent-muted: #ccfbf1;
-  --cn-accent-ink: #042f2e;
+  /* The thread — Continuum's single accent (signal blue) */
+  --cn-accent: #2563eb;
+  --cn-accent-hover: #1d4ed8;
+  --cn-accent-muted: #dbeafe;
+  --cn-accent-ink: #1e3a8a;
 
   /* Status */
   --cn-success: #15803d;
@@ -49,6 +52,8 @@
 
 [data-theme="dark"],
 .dark {
+  color-scheme: dark;
+
   --cn-bg: #101314;
   --cn-surface: #16191b;
   --cn-surface-raised: #1d2124;
@@ -58,10 +63,10 @@
   --cn-border: #272c30;
   --cn-border-strong: #3a4046;
 
-  --cn-accent: #2dd4bf;
-  --cn-accent-hover: #5eead4;
-  --cn-accent-muted: #134e4a;
-  --cn-accent-ink: #ccfbf1;
+  --cn-accent: #5b8def;
+  --cn-accent-hover: #7ea6f4;
+  --cn-accent-muted: #1e2f55;
+  --cn-accent-ink: #dbeafe;
 
   --cn-success: #4ade80;
   --cn-warning: #fbbf24;
