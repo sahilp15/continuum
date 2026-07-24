@@ -1,6 +1,7 @@
 import { redirect } from "next/navigation";
 import type { Memory, Suggestion } from "@continuum/contracts";
 import { requireActor } from "@/lib/actor";
+import { googleConnectorConfigured } from "@/lib/env";
 import { getEnv, getOnboarding } from "@/lib/services";
 import {
   createFirstProject,
@@ -194,16 +195,20 @@ export default async function OnboardingPage() {
               <h1 className="font-display text-3xl">Bring in some context.</h1>
               <p className="mt-2 text-(--cn-text-secondary)">
                 Continuum learns from sources you choose — with your permission, nothing is
-                remembered without your approval. You can paste or upload now; live app connectors
-                are coming soon.
+                remembered without your approval. Paste or upload now to keep moving — you can
+                connect a live app afterward from Connectors.
               </p>
             </div>
             <div className="grid gap-3 sm:grid-cols-2">
               {[
-                { name: "Google Workspace", note: "Gmail · Drive · Calendar" },
-                { name: "Slack", note: "Channels · messages" },
-                { name: "Notion", note: "Pages · databases" },
-                { name: "GitHub", note: "Repos · issues" },
+                {
+                  name: "Google Workspace",
+                  note: "Gmail · Drive · Calendar",
+                  ready: googleConnectorConfigured,
+                },
+                { name: "Slack", note: "Channels · messages", ready: false },
+                { name: "Notion", note: "Pages · databases", ready: false },
+                { name: "GitHub", note: "Repos · issues", ready: false },
               ].map((c) => (
                 <div
                   key={c.name}
@@ -211,7 +216,9 @@ export default async function OnboardingPage() {
                 >
                   <div className="flex items-center justify-between">
                     <span className="font-medium">{c.name}</span>
-                    <span className="chip">Coming soon</span>
+                    <span className="chip">
+                      {c.ready ? "Connect after this step" : "Coming soon"}
+                    </span>
                   </div>
                   <p className="mt-1 text-xs text-(--cn-text-tertiary)">{c.note}</p>
                 </div>
