@@ -33,6 +33,9 @@ export default defineConfig({
       // In-memory: a single process-wide PGlite instance, no file lock to
       // contend on across module instances.
       CONTINUUM_PGLITE_DIR: "memory://",
+      // e2e must be hermetic: whether "no credentials configured" tests pass
+      // can never depend on a developer's local .env (see next.config.ts).
+      CONTINUUM_SKIP_DOTENV: "1",
     },
   },
 });

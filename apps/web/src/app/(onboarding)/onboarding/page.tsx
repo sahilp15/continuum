@@ -34,17 +34,34 @@ const STEP_TITLES = [
 const FIELD =
   "w-full rounded-(--cn-radius-md) border border-(--cn-border-strong) bg-(--cn-bg) px-3 py-2 text-sm";
 
+const BACK_BUTTON_CLASS = "text-sm text-(--cn-text-secondary) underline-offset-2 hover:underline";
+
+/** Standalone Back button — wraps its own <form>. Use only where there is NO
+ *  enclosing <form> already (nesting <form> inside <form> is invalid HTML and
+ *  breaks React hydration — see BackSubmit for the in-form case). `step` is
+ *  bound into the action (Next's documented pattern for extra args), not
+ *  carried via a hidden input. */
 function BackButton({ step }: { step: number }) {
   return (
-    <form action={goBack}>
-      <input type="hidden" name="step" value={step} />
-      <button
-        type="submit"
-        className="text-sm text-(--cn-text-secondary) underline-offset-2 hover:underline"
-      >
+    <form action={goBack.bind(null, step)}>
+      <button type="submit" className={BACK_BUTTON_CLASS}>
         ← Back
       </button>
     </form>
+  );
+}
+
+/** In-form Back button — NO <form> of its own. Submits the form it's placed
+ *  inside, but routes to `goBack` via `formAction`. `step` is bound into the
+ *  action rather than passed as a name/value pair: a <button formAction={fn}>
+ *  where `fn` is a function reference can't also carry its own name/value —
+ *  React reserves that encoding for identifying the action itself. Use INSIDE
+ *  an existing <form>. */
+function BackSubmit({ step }: { step: number }) {
+  return (
+    <button type="submit" formAction={goBack.bind(null, step)} className={BACK_BUTTON_CLASS}>
+      ← Back
+    </button>
   );
 }
 
@@ -145,7 +162,7 @@ export default async function OnboardingPage() {
               />
             </label>
             <div className="flex items-center justify-between">
-              <BackButton step={step} />
+              <BackSubmit step={step} />
               <button type="submit" className="btn-primary text-sm">
                 Continue
               </button>
@@ -181,7 +198,7 @@ export default async function OnboardingPage() {
               <input name="description" className={FIELD} placeholder="What is this Space for?" />
             </label>
             <div className="flex items-center justify-between">
-              <BackButton step={step} />
+              <BackSubmit step={step} />
               <button type="submit" className="btn-primary text-sm">
                 Create Space
               </button>
@@ -260,7 +277,7 @@ export default async function OnboardingPage() {
               />
             </label>
             <div className="flex items-center justify-between">
-              <BackButton step={step} />
+              <BackSubmit step={step} />
               <button type="submit" className="btn-primary text-sm">
                 Extract candidates
               </button>
@@ -360,7 +377,7 @@ export default async function OnboardingPage() {
               />
             </label>
             <div className="flex items-center justify-between">
-              <BackButton step={step} />
+              <BackSubmit step={step} />
               <button type="submit" className="btn-primary text-sm">
                 Generate first context
               </button>

@@ -143,10 +143,17 @@ export async function createFirstProject(formData: FormData): Promise<void> {
   revalidatePath("/onboarding");
 }
 
-export async function goBack(formData: FormData): Promise<void> {
+/**
+ * Bound server action: callers pass `step` via `goBack.bind(null, step)` (Next's
+ * documented pattern for extra args on a form/formAction). Deliberately NOT a
+ * plain `(formData)` handler reading a hidden `step` field — a <button
+ * formAction={fn}> where `fn` is a function reference can't also carry a
+ * `name`/`value` pair (React reserves the button's encoding for the action
+ * itself), so binding is the only way to pass `step` to an in-form Back button.
+ */
+export async function goBack(step: number, _formData: FormData): Promise<void> {
   const actor = await requireActor();
-  const current = Number(str(formData, "step") || "0");
-  await getOnboarding().save(actor.userId, { step: Math.max(0, current - 1) });
+  await getOnboarding().save(actor.userId, { step: Math.max(0, step - 1) });
   revalidatePath("/onboarding");
 }
 
